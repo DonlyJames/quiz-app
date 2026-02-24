@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Master - Home</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="category-container">
+      <h1>🚀 Quiz Master</h1>
+      <p>Select a category to begin</p>
+
+      <div class="mode-box">
+        <label class="switch">
+          <input type="checkbox" id="endlessToggle" />
+          <span class="slider"></span>
+        </label>
+        <span>Endless Mode (3 Lives + High Score)</span>
+      </div>
+
+      <div class="category-list">
+        <button class="menu-btn" onclick="start('questions/js-easy.js')">
+          JavaScript - Easy
+        </button>
+        <button class="menu-btn" onclick="start('questions/js-med.js')">
+          JavaScript - Medium
+        </button>
+        <button class="menu-btn" onclick="start('questions/python-easy.js')">
+          Python - Easy
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function start(file) {
+        const isEndless = document.getElementById("endlessToggle").checked;
+        localStorage.setItem("questionFile", file);
+        localStorage.setItem("quizMode", isEndless ? "endless" : "classic");
+        window.location.href = "quiz.html";
+      }
+    </script>
+  </body>
+</html>

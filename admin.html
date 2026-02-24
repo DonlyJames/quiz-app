@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quiz Admin</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f0f4f8;
+        display: flex;
+        justify-content: center;
+        padding-top: 50px;
+      }
+
+      .admin-container {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 400px;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      #status {
+        margin-top: 15px;
+        font-weight: bold;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-container">
+      <h2>Add Quiz Question</h2>
+
+      <label>Category:</label>
+      <select id="category">
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+      </select>
+
+      <label>Difficulty:</label>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+
+      <label>Question:</label>
+      <input id="question" placeholder="Enter question" />
+
+      <label>Option 1:</label>
+      <input id="opt1" placeholder="Option 1" />
+      <label>Option 2:</label>
+      <input id="opt2" placeholder="Option 2" />
+      <label>Option 3:</label>
+      <input id="opt3" placeholder="Option 3" />
+      <label>Option 4:</label>
+      <input id="opt4" placeholder="Option 4" />
+
+      <label>Correct Option (0-3):</label>
+      <input id="answer" type="number" placeholder="Enter 0,1,2,3" />
+
+      <label>Explanation:</label>
+      <input id="explanation" placeholder="Enter explanation" />
+
+      <button onclick="addQuestion()">Add Question</button>
+
+      <p id="status"></p>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Master - Play</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <span id="livesDisplay"></span>
+        <button id="soundToggle" onclick="toggleSound()">🔊 Sound</button>
+      </div>
+
+      <div class="progress-container">
+        <div id="progressBar"></div>
+      </div>
+
+      <h3 id="progressText"></h3>
+      <h2 id="question">Loading...</h2>
+
+      <div class="options">
+        <button class="opt" onclick="checkAnswer(0)"></button>
+        <button class="opt" onclick="checkAnswer(1)"></button>
+        <button class="opt" onclick="checkAnswer(2)"></button>
+        <button class="opt" onclick="checkAnswer(3)"></button>
+      </div>
+
+      <p id="feedback"></p>
+      <div id="highScoreDisplay"></div>
+
+      <button
+        id="restartBtn"
+        class="primary-btn"
+        onclick="location.reload()"
+        style="display: none"
+      >
+        🔄 Try Again
+      </button>
+      <button
+        id="homeBtn"
+        class="secondary-btn"
+        onclick="location.href = 'index.html'"
+        style="display: none"
+      >
+        🏠 Home
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
