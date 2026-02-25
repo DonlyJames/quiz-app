@@ -53,39 +53,44 @@ function loadQuestion() {
   const progressPercent = ((index + 1) / questions.length) * 100;
   progressBar.style.width = progressPercent + "%";
 
-  // const buttons = document.querySelectorAll(".opt");
-  // buttons.forEach((btn, i) => {
-  //   btn.textContent = q.options[i];
-  //   btn.disabled = false;
-  //   btn.style.display = "block";
-  //   btn.classList.remove("correct", "wrong");
-  // });
   const optionsContainer = document.querySelector(".options");
   optionsContainer.innerHTML = "";
 
-  q.options.forEach((optionText, i) => {
+  // ✅ Create safe option objects
+  let options = q.options.map((text, i) => ({
+    text: text,
+    correct: i === q.answer,
+  }));
+
+  // ✅ Shuffle options safely
+  options = shuffle(options);
+
+  // ✅ Create buttons dynamically
+  options.forEach((option) => {
     const button = document.createElement("button");
     button.classList.add("opt");
-    button.textContent = optionText;
-    button.onclick = () => checkAnswer(i);
+    button.textContent = option.text;
+
+    button.onclick = () => checkAnswer(option.correct, button);
+
     optionsContainer.appendChild(button);
   });
   feedbackEl.innerHTML = "";
 }
 
-function checkAnswer(i) {
-  if (document.querySelector(".opt:disabled")) return;
+function checkAnswer(isCorrect, clickedButton) {
+  // if (document.querySelector(".opt:disabled")) return;
   document.activeElement.blur(); // remove focus highlight
-  const q = questions[index];
+  // const q = questions[index];
   const buttons = document.querySelectorAll(".opt");
   buttons.forEach((b) => (b.disabled = true));
 
-  if (i === q.answer) {
+  if (isCorrect) {
     score++;
     if (soundEnabled) sounds.correct.play();
 
     // Highlight correct answer in green
-    buttons[i].classList.add("correct");
+    clickedButton.classList.add("correct");
 
     feedbackEl.innerHTML = `<span style="color: green">✅ Correct!</span><br><small>${q.explanation}</small>`;
   } else {
@@ -93,6 +98,8 @@ function checkAnswer(i) {
 
     if (navigator.vibrate) {
       navigator.vibrate([100, 50, 100]);
+
+      clickedButton.classList.add("wrong");
     }
 
     if (mode === "endless") {
@@ -100,10 +107,14 @@ function checkAnswer(i) {
       livesDisplay.textContent = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
     }
 
-    // Highlight selected wrong answer in red
-    buttons[i].classList.add("wrong");
-
-    // Highlight correct answer in green
+    // highlight correct one
+    buttons.forEach((btn) => {
+      if (
+        btn.textContent === questions[index].options[questions[index].answer]
+      ) {
+        btn.classList.add("correct");
+      }
+    }); // Highlight correct answer in green
     buttons[q.answer].classList.add("correct");
 
     feedbackEl.innerHTML = `<span style="color: red">❌ Wrong!</span><br><small>${q.explanation}</small>`;
