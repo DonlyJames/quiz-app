@@ -142,7 +142,8 @@ function endQuiz() {
   }
 
   feedbackEl.innerHTML = `Final Score: ${score}/${questions.length}`;
-  document.querySelectorAll(".opt").forEach((b) => (b.style.display = "none"));
+  // document.querySelectorAll(".opt").forEach((b) => (b.style.display = "none"));
+  document.querySelector(".options").innerHTML = "";
   document.getElementById("restartBtn").style.display = "block";
   document.getElementById("homeBtn").style.display = "block";
 }
