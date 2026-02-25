@@ -59,6 +59,7 @@ function loadQuestion() {
 }
 
 function checkAnswer(i) {
+  document.activeElement.blur(); // remove focus highlight
   const q = questions[index];
   const buttons = document.querySelectorAll(".opt");
   buttons.forEach((b) => (b.disabled = true));
@@ -73,6 +74,10 @@ function checkAnswer(i) {
     feedbackEl.innerHTML = `<span style="color: green">✅ Correct!</span><br><small>${q.explanation}</small>`;
   } else {
     if (soundEnabled) sounds.wrong.play();
+
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
 
     if (mode === "endless") {
       lives--;
@@ -134,5 +139,9 @@ function toggleSound() {
 }
 
 function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
