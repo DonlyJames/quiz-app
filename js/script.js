@@ -1,175 +1,497 @@
-let questions = [];
-let index = 0;
-let score = 0;
-let lives = 3;
-let soundEnabled = true;
+/* ============================================================
+   QUIZ MASTER — script.js
+   Structure:
+   1. Settings Module
+   2. Audio Module
+   3. State
+   4. DOM References
+   5. Init
+   6. Quiz Logic
+   7. UI Rendering
+   8. Feedback & Answer Handling
+   9. Navigation (Auto / Manual / Swipe)
+   10. End Screen
+   11. Settings Modal
+   12. Utilities
+   ============================================================ */
 
-const mode = localStorage.getItem("quizMode");
-const file = localStorage.getItem("questionFile");
+/* ─────────────────────────────────────────────────────────────
+   1. SETTINGS MODULE
+   Single source of truth for all user preferences.
+   Both index.html and quiz.html read from the same key.
+   ───────────────────────────────────────────────────────────── */
+const Settings = (() => {
+  const KEY = "quizSettings";
 
-// UI Elements
-const questionEl = document.getElementById("question");
-const feedbackEl = document.getElementById("feedback");
-const progressText = document.getElementById("progressText");
-const progressBar = document.getElementById("progressBar");
-const livesDisplay = document.getElementById("livesDisplay");
-const highScoreEl = document.getElementById("highScoreDisplay");
+  const DEFAULTS = {
+    sound: true,
+    vibration: true,
+    theme: "auto",
+    nextMode: "auto",
+  };
 
-// Audio
-const sounds = {
-  correct: new Audio("sounds/correct.mp3"),
-  wrong: new Audio("sounds/wrong.mp3"),
-  highScore: new Audio("sounds/high-score.mp3"), // Reusing your timeout as highscore or replace
+  function load() {
+    try {
+      return Object.assign(
+        {},
+        DEFAULTS,
+        JSON.parse(localStorage.getItem(KEY) || "{}"),
+      );
+    } catch {
+      return { ...DEFAULTS };
+    }
+  }
+
+  function save(settings) {
+    localStorage.setItem(KEY, JSON.stringify(settings));
+  }
+
+  function get(key) {
+    return load()[key];
+  }
+
+  function set(key, value) {
+    const current = load();
+    current[key] = value;
+    save(current);
+  }
+
+  return { load, save, get, set, DEFAULTS };
+})();
+
+/* ─────────────────────────────────────────────────────────────
+   2. AUDIO MODULE
+   Lazy-loads sounds. Only creates Audio objects once.
+   Silently fails if files are missing — never crashes quiz.
+   ───────────────────────────────────────────────────────────── */
+const Audio = (() => {
+  const cache = {};
+
+  const FILES = {
+    correct: "sounds/correct.mp3",
+    wrong: "sounds/wrong.mp3",
+    highScore: "sounds/high-score.mp3",
+  };
+
+  // Preload all sounds upfront
+  function preload() {
+    Object.entries(FILES).forEach(([key, src]) => {
+      const audio = new window.Audio(src);
+      audio.preload = "auto";
+      cache[key] = audio;
+    });
+  }
+
+  function play(name) {
+    if (!Settings.get("sound")) return;
+    const audio = cache[name];
+    if (!audio) return;
+    // Rewind if already playing — allows rapid replays
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Autoplay blocked — silently ignore
+    });
+  }
+
+  return { preload, play };
+})();
+
+/* ─────────────────────────────────────────────────────────────
+   3. STATE
+   All mutable quiz state lives here — never scattered as
+   loose variables. Makes it easy to reset or inspect.
+   ───────────────────────────────────────────────────────────── */
+const State = {
+  questions: [],
+  index: 0,
+  score: 0,
+  lives: 3,
+  answered: false, // true after user taps an option
+  canAdvance: false, // true once answer is confirmed — gates swipe/auto
+  swipeHintShown: false, // show swipe hint only once per session
 };
 
-Object.values(sounds).forEach((sound) => {
-  sound.preload = "auto";
-});
+/* ─────────────────────────────────────────────────────────────
+   4. DOM REFERENCES
+   Cached once at startup. Never call getElementById in logic.
+   ───────────────────────────────────────────────────────────── */
+const El = {
+  question: document.getElementById("question"),
+  feedback: document.getElementById("feedbackContainer"),
+  progressText: document.getElementById("progressText"),
+  progressBar: document.getElementById("progressBar"),
+  livesDisplay: document.getElementById("livesDisplay"),
+  highScore: document.getElementById("highScoreDisplay"),
+  options: document.getElementById("optionsContainer"),
+  endActions: document.getElementById("endActions"),
+  swipeHint: document.getElementById("swipeHint"),
+  quizContainer: document.getElementById("quizContainer"),
+  questionCard: document.getElementById("questionCard"),
+};
 
-if (!file) location.href = "index.html";
+/* ─────────────────────────────────────────────────────────────
+   5. INIT
+   ───────────────────────────────────────────────────────────── */
+const quizMode = localStorage.getItem("quizMode");
+const quizFile = localStorage.getItem("questionFile");
 
-// 1. Initialize
-loadQuestions(file);
+// Guard: redirect home if no file selected
+if (!quizFile) {
+  location.href = "index.html";
+}
 
+// Preload audio on first user interaction (browser requirement)
+document.addEventListener("touchstart", Audio.preload, { once: true });
+document.addEventListener("mousedown", Audio.preload, { once: true });
+
+// Boot
+loadQuestions(quizFile);
+initSettingsModal();
+initSwipe();
+
+/* ─────────────────────────────────────────────────────────────
+   6. QUIZ LOGIC
+   ───────────────────────────────────────────────────────────── */
 function loadQuestions(file) {
   const script = document.createElement("script");
   script.src = file;
+
   script.onload = () => {
-    // QUESTIONS comes from the loaded script file
-    questions =
-      mode === "endless" ? shuffle(QUESTIONS) : shuffle(QUESTIONS).slice(0, 10);
-    if (mode === "endless") livesDisplay.textContent = "❤️❤️❤️";
+    // QUESTIONS is a global set by the loaded question file
+    if (typeof QUESTIONS === "undefined" || !QUESTIONS.length) {
+      showError("Failed to load questions.");
+      return;
+    }
+
+    State.questions =
+      quizMode === "endless"
+        ? shuffle([...QUESTIONS])
+        : shuffle([...QUESTIONS]).slice(0, 10);
+
+    if (quizMode === "endless") {
+      renderLives();
+    }
+
     loadQuestion();
   };
+
+  script.onerror = () => showError("Could not load question file.");
   document.body.appendChild(script);
 }
 
 function loadQuestion() {
-  const q = questions[index];
-  progressText.textContent = `Question ${index + 1} of ${questions.length}`;
-  questionEl.textContent = q.question;
-  questionEl.scrollTop = 0;
+  const q = State.questions[State.index];
 
-  const progressPercent = ((index + 1) / questions.length) * 100;
-  progressBar.style.width = progressPercent + "%";
+  // Reset per-question state
+  State.answered = false;
+  State.canAdvance = false;
 
-  const optionsContainer = document.querySelector(".options");
-  optionsContainer.innerHTML = "";
+  // Progress
+  const total = State.questions.length;
+  const current = State.index + 1;
+  El.progressText.textContent = `${current} / ${total}`;
+  El.progressBar.style.width = `${(current / total) * 100}%`;
 
-  // ✅ Create safe option objects
-  let options = q.options.map((text, i) => ({
-    text: text,
-    correct: i === q.answer,
-  }));
+  // Question text — trigger entrance animation
+  El.question.textContent = q.question;
+  El.question.scrollTop = 0;
+  El.questionCard.classList.remove("question-enter");
+  // Force reflow to restart animation
+  void El.questionCard.offsetWidth;
+  El.questionCard.classList.add("question-enter");
 
-  // ✅ Shuffle options safely
-  options = shuffle(options);
+  // Clear previous feedback
+  El.feedback.innerHTML = "";
 
-  // ✅ Create buttons dynamically
-  options.forEach((option) => {
-    const button = document.createElement("button");
-    button.classList.add("opt");
-    button.textContent = option.text;
-
-    button.onclick = () => checkAnswer(option.correct, button);
-
-    optionsContainer.appendChild(button);
-  });
-  feedbackEl.innerHTML = "";
+  // Render options
+  renderOptions(q);
 }
 
-function checkAnswer(isCorrect, clickedButton) {
-  // if (document.querySelector(".opt:disabled")) return;
-  document.activeElement.blur(); // remove focus highlight
-  // const q = questions[index];
-  const buttons = document.querySelectorAll(".opt");
+function checkAnswer(isCorrect, clickedBtn) {
+  // Prevent double-tap
+  if (State.answered) return;
+  State.answered = true;
+
+  const q = State.questions[State.index];
+
+  // Remove focus ring (mobile cosmetic)
+  document.activeElement?.blur();
+
+  // Disable all buttons
+  const buttons = El.options.querySelectorAll(".opt");
   buttons.forEach((b) => (b.disabled = true));
 
   if (isCorrect) {
-    score++;
-    if (soundEnabled) sounds.correct.play();
-
-    // Highlight correct answer in green
-    clickedButton.classList.add("correct");
-
-    feedbackEl.innerHTML = `<span style="color: green">✅ Correct!</span><br><small>${q.explanation}</small>`;
+    State.score++;
+    Audio.play("correct");
+    clickedBtn.classList.add("correct");
+    showFeedback(true, q.explanation);
   } else {
-    if (soundEnabled) sounds.wrong.play();
+    Audio.play("wrong");
 
-    if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
-
-      clickedButton.classList.add("wrong");
+    if (Settings.get("vibration") && navigator.vibrate) {
+      navigator.vibrate([80, 40, 80]);
     }
 
-    if (mode === "endless") {
-      lives--;
-      livesDisplay.textContent = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+    clickedBtn.classList.add("wrong");
+
+    // Reveal the correct button using data attribute (works after shuffling)
+    buttons.forEach((b) => {
+      if (b.dataset.correct === "true") b.classList.add("correct");
+    });
+
+    if (quizMode === "endless") {
+      State.lives = Math.max(0, State.lives - 1);
+      renderLives();
     }
 
-    // highlight correct one
-    buttons.forEach((btn) => {
-      if (
-        btn.textContent === questions[index].options[questions[index].answer]
-      ) {
-        btn.classList.add("correct");
-      }
-    }); // Highlight correct answer in green
-    buttons[q.answer].classList.add("correct");
-
-    feedbackEl.innerHTML = `<span style="color: red">❌ Wrong!</span><br><small>${q.explanation}</small>`;
+    showFeedback(false, q.explanation);
   }
 
-  if (mode === "endless" && lives <= 0) {
-    setTimeout(() => {
-      alert("Out of lives!");
-      endQuiz();
-    }, 2000);
+  // Allow advancing after feedback is shown
+  State.canAdvance = true;
+
+  const nextMode = Settings.get("nextMode");
+
+  if (quizMode === "endless" && State.lives <= 0) {
+    // Game over — wait for user to see feedback then end
+    setTimeout(endQuiz, 2200);
+    return;
+  }
+
+  if (nextMode === "auto") {
+    setTimeout(advance, 2200);
   } else {
-    setTimeout(next, 2000);
+    // Manual mode — show swipe hint once
+    if (!State.swipeHintShown) {
+      State.swipeHintShown = true;
+      El.swipeHint.style.display = "block";
+      // Hide after animation completes
+      setTimeout(() => (El.swipeHint.style.display = "none"), 2600);
+    }
   }
 }
 
-function next() {
-  index++;
-  index < questions.length ? loadQuestion() : endQuiz();
+function advance() {
+  if (!State.canAdvance) return;
+  State.index++;
+  State.index < State.questions.length ? loadQuestion() : endQuiz();
 }
 
+/* ─────────────────────────────────────────────────────────────
+   7. UI RENDERING
+   ───────────────────────────────────────────────────────────── */
+function renderOptions(q) {
+  El.options.innerHTML = "";
+
+  // Build option objects preserving correct flag
+  let options = q.options.map((text, i) => ({
+    text,
+    correct: i === q.answer,
+  }));
+
+  options = shuffle(options);
+
+  options.forEach((option, i) => {
+    const btn = document.createElement("button");
+    btn.classList.add("opt");
+    btn.textContent = option.text;
+    btn.dataset.correct = option.correct; // used in checkAnswer to reveal correct
+    btn.style.animationDelay = `${i * 60}ms`; // stagger entrance
+    btn.addEventListener("click", () => checkAnswer(option.correct, btn));
+    El.options.appendChild(btn);
+  });
+}
+
+function renderLives() {
+  const { lives } = State;
+  El.livesDisplay.textContent = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+}
+
+function showFeedback(isCorrect, explanation) {
+  const box = document.createElement("div");
+  box.classList.add("feedback-box", isCorrect ? "correct" : "wrong");
+
+  const icon = isCorrect ? "✅" : "❌";
+  const label = isCorrect ? "Correct!" : "Wrong!";
+
+  box.innerHTML = `
+    <strong>${icon} ${label}</strong>
+    ${explanation ? `<small>${explanation}</small>` : ""}
+  `;
+
+  El.feedback.innerHTML = "";
+  El.feedback.appendChild(box);
+}
+
+function showError(msg) {
+  El.question.textContent = msg;
+  El.options.innerHTML = "";
+}
+
+/* ─────────────────────────────────────────────────────────────
+   8. END SCREEN
+   ───────────────────────────────────────────────────────────── */
 function endQuiz() {
-  progressBar.style.width = "100%";
-  questionEl.textContent = "Quiz Finished!";
+  El.progressBar.style.width = "100%";
+  El.question.textContent = "Quiz Complete!";
+  El.options.innerHTML = "";
+  El.feedback.innerHTML = `
+    <div class="feedback-box correct">
+      <strong>🏁 Final Score: ${State.score} / ${State.questions.length}</strong>
+    </div>
+  `;
 
-  if (mode === "endless") {
-    const saveKey = `highScore_${file}`;
-    const lastHigh = localStorage.getItem(saveKey) || 0;
-    if (score > lastHigh) {
-      localStorage.setItem(saveKey, score);
-      highScoreEl.innerHTML = `⭐ NEW HIGH SCORE: ${score}!`;
-      if (soundEnabled) sounds.highScore.play();
+  if (quizMode === "endless") {
+    const saveKey = `highScore_${quizFile}`;
+    const lastHigh = parseInt(localStorage.getItem(saveKey) || "0", 10);
+
+    if (State.score > lastHigh) {
+      localStorage.setItem(saveKey, State.score);
+      El.highScore.innerHTML = `⭐ New High Score: ${State.score}!`;
+      Audio.play("highScore");
     } else {
-      highScoreEl.innerHTML = `🏆 Current High Score: ${lastHigh}`;
+      El.highScore.innerHTML = `🏆 Best: ${lastHigh}`;
     }
-    highScoreEl.style.display = "block";
+
+    El.highScore.style.display = "block";
   }
 
-  feedbackEl.innerHTML = `Final Score: ${score}/${questions.length}`;
-  // document.querySelectorAll(".opt").forEach((b) => (b.style.display = "none"));
-  document.querySelector(".options").innerHTML = "";
-  document.getElementById("restartBtn").style.display = "block";
-  document.getElementById("homeBtn").style.display = "block";
+  El.endActions.style.display = "flex";
+  El.swipeHint.style.display = "none";
 }
 
-function toggleSound() {
-  soundEnabled = !soundEnabled;
-  document.getElementById("soundToggle").textContent = soundEnabled
-    ? "🔊 Sound"
-    : "🔈 Muted";
+/* ─────────────────────────────────────────────────────────────
+   9. SWIPE GESTURE
+   Swipe left anywhere on the quiz container to advance.
+   Only fires after an answer is confirmed (canAdvance).
+   Ignores vertical scrolls and right/up/down swipes.
+   ───────────────────────────────────────────────────────────── */
+function initSwipe() {
+  let startX = 0;
+  let startY = 0;
+
+  El.quizContainer.addEventListener(
+    "touchstart",
+    (e) => {
+      startX = e.changedTouches[0].clientX;
+      startY = e.changedTouches[0].clientY;
+    },
+    { passive: true },
+  );
+
+  El.quizContainer.addEventListener(
+    "touchend",
+    (e) => {
+      if (!State.canAdvance) return;
+      if (Settings.get("nextMode") !== "manual") return;
+
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+
+      // Must be mostly horizontal and at least 50px
+      const isHorizontal = Math.abs(dx) > Math.abs(dy);
+      const isLongEnough = Math.abs(dx) > 50;
+      const isLeftSwipe = dx < 0;
+
+      if (isHorizontal && isLongEnough && isLeftSwipe) {
+        advance();
+      }
+    },
+    { passive: true },
+  );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   10. SETTINGS MODAL
+   Shared logic that works on both index.html and quiz.html.
+   Reads/writes through Settings module — no direct localStorage.
+   ───────────────────────────────────────────────────────────── */
+function initSettingsModal() {
+  const overlay = document.getElementById("modalOverlay");
+  const openBtn = document.getElementById("settingsBtn");
+  const closeBtn = document.getElementById("closeModal");
+
+  // Elements might not exist on every page — guard each one
+  if (!overlay || !openBtn) return;
+
+  // Open / close
+  openBtn.addEventListener("click", () => overlay.classList.add("active"));
+  closeBtn?.addEventListener("click", () => overlay.classList.remove("active"));
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.classList.remove("active");
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") overlay.classList.remove("active");
+  });
+
+  // ── Populate controls from saved settings ──────────────────
+  const s = Settings.load();
+
+  const soundToggle = document.getElementById("soundToggle");
+  const vibrationToggle = document.getElementById("vibrationToggle");
+
+  if (soundToggle) {
+    soundToggle.checked = s.sound;
+    soundToggle.addEventListener("change", (e) => {
+      Settings.set("sound", e.target.checked);
+    });
+  }
+
+  if (vibrationToggle) {
+    vibrationToggle.checked = s.vibration;
+    vibrationToggle.addEventListener("change", (e) => {
+      Settings.set("vibration", e.target.checked);
+    });
+  }
+
+  initPillGroup("themeGroup", s.theme, (val) => {
+    Settings.set("theme", val);
+    applyTheme(val);
+  });
+
+  initPillGroup("nextModeGroup", s.nextMode, (val) => {
+    Settings.set("nextMode", val);
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11. UTILITIES
+   ───────────────────────────────────────────────────────────── */
+
+// Fisher-Yates shuffle — always returns a new array
 function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return arr;
+  return a;
+}
+
+// Pill group selector — used by settings modal
+function initPillGroup(groupId, currentValue, onChange) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+
+  group.querySelectorAll(".pill").forEach((pill) => {
+    pill.classList.toggle("active", pill.dataset.value === currentValue);
+
+    pill.addEventListener("click", () => {
+      group
+        .querySelectorAll(".pill")
+        .forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      onChange(pill.dataset.value);
+    });
+  });
+}
+
+// Apply theme — mirrors the inline <head> script logic
+function applyTheme(theme) {
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = theme === "dark" || (theme === "auto" && prefersDark);
+  document.documentElement.classList.toggle("dark", isDark);
 }

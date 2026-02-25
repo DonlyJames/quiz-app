@@ -1,145 +1,741 @@
+/* ============================================================
+   QUIZ MASTER — style.css
+   Structure:
+   1. Design Tokens (CSS Variables)
+   2. Reset & Base
+   3. Typography
+   4. Layout — Home Page
+   5. Layout — Quiz Page
+   6. Components — Buttons
+   7. Components — Toggle Switch
+   8. Components — Pill Group
+   9. Components — Settings Modal
+   10. Components — Progress Bar
+   11. Components — Question Card
+   12. Components — Option Buttons
+   13. Components — Feedback
+   14. Components — High Score
+   15. Components — Swipe Hint
+   16. Animations & Transitions
+   17. Dark Mode
+   18. Responsive / Mobile Polish
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────────
+   1. DESIGN TOKENS
+   ───────────────────────────────────────────────────────────── */
 :root {
-  --bg-color: #ffffff;
-  --text-color: #000000;
-  --card-bg: #ffffff;
+  /* Brand */
+  --accent: #6c47ff;
+  --accent-light: #ede9ff;
+  --accent-dark: #4f2fe0;
+
+  /* Surfaces */
+  --bg: #f4f3f8;
+  --surface: #ffffff;
+  --surface-2: #f0eef8;
+  --border: #e2dff0;
+
+  /* Text */
+  --text-primary: #1a1525;
+  --text-secondary: #6b6585;
+  --text-inverse: #ffffff;
+
+  /* Feedback */
+  --correct-bg: #e8f8f0;
+  --correct-border: #2ecc71;
+  --correct-text: #1a7a44;
+  --wrong-bg: #fff0f0;
+  --wrong-border: #e74c3c;
+  --wrong-text: #a81e1e;
+
+  /* Sizing */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(108, 71, 255, 0.08);
+  --shadow-md: 0 6px 24px rgba(108, 71, 255, 0.12);
+  --shadow-lg: 0 12px 40px rgba(108, 71, 255, 0.18);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-mid: 280ms;
+  --duration-slow: 420ms;
 }
 
-body.dark {
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --card-bg: #1e1e1e;
+/* ─────────────────────────────────────────────────────────────
+   2. RESET & BASE
+   ───────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family: "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
   min-height: 100vh;
-  margin: 0;
-}
-
-.category-container,
-.quiz-container {
-  background: white;
-  padding: 20px;
-  width: 95%;
-  max-width: 420px;
-  border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-/* Header & Lives */
-.quiz-header {
+  min-height: 100dvh; /* dynamic viewport — avoids browser chrome overlap on mobile */
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-#soundToggle {
-  width: auto;
-  padding: 5px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-/* Progress Bar */
-.progress-container {
-  width: 100%;
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-#progressBar {
-  width: 0%;
-  height: 100%;
-  background: #764ba2;
-  transition: 0.4s;
-}
-
-/* Buttons */
-.menu-btn,
-.opt,
-.primary-btn,
-.secondary-btn {
-  width: 100%;
-  padding: 16px;
-  margin: 12px 0;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
-.opt {
-  background: #f8f9fa;
-  border: 2px solid #ddd;
-  text-align: left;
-}
-.opt:hover {
-  border-color: #764ba2;
-  background: #f3e5f5;
-}
-
-/* Question Styling for Code Snippets */
-#question {
-  white-space: pre-wrap; /* This preserves the lines and spaces */
-  word-wrap: break-word; /* Prevents long code from breaking the box */
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  text-align: left; /* Code looks better aligned to the left */
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  line-height: 1.5; /*try 1.3rem */
-  background-color: #f8f9fa; /* Light grey background to make it look like a box */
-  padding: 14px; /*try 12px */
-  border-radius: 8px;
-  border-left: 5px solid #764ba2; /* Purple accent to match your theme */
-  font-family: "Courier New", Courier, monospace; /* Coding font */
-  max-height: 260px;
-  overflow-y: auto;
-}
-
-.primary-btn {
-  background: #764ba2;
-  color: white;
-}
-.secondary-btn {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  background: transparent;
-  color: #764ba2;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 16px 32px;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background var(--duration-mid) var(--ease-out),
+    color var(--duration-mid) var(--ease-out);
 }
 
 button {
-  touch-action: manipulation;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent; /* removes blue flash on mobile tap */
+  touch-action: manipulation; /* removes 300ms tap delay on mobile */
 }
 
-.opt:active {
+/* ─────────────────────────────────────────────────────────────
+   3. TYPOGRAPHY
+   ───────────────────────────────────────────────────────────── */
+h1 {
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. LAYOUT — HOME PAGE
+   ───────────────────────────────────────────────────────────── */
+.home-container {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 12px;
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-header__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-header__icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.home-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: -6px;
+}
+
+/* Mode card */
+.mode-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mode-card__label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mode-card__desc {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Category list */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.category-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.category-btn:hover,
+.category-btn:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  outline: none;
+}
+
+.category-btn:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-btn__icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.category-btn__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.category-btn__text strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.category-btn__text small {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.category-btn__arrow {
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. LAYOUT — QUIZ PAGE
+   ───────────────────────────────────────────────────────────── */
+.quiz-container {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 12px;
+}
+
+.quiz-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lives-display {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   6. COMPONENTS — BUTTONS
+   ───────────────────────────────────────────────────────────── */
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  transition:
+    background var(--duration-fast),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.icon-btn:hover {
+  background: var(--surface-2);
+}
+.icon-btn:active {
+  transform: scale(0.88);
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: var(--text-inverse);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 16px rgba(108, 71, 255, 0.35);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.primary-btn:hover {
+  box-shadow: 0 6px 22px rgba(108, 71, 255, 0.45);
+}
+.primary-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(108, 71, 255, 0.25);
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background var(--duration-fast);
+}
+
+.secondary-btn:hover {
+  background: var(--accent-light);
+}
+.secondary-btn:active {
+  opacity: 0.8;
+}
+
+.end-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   7. COMPONENTS — TOGGLE SWITCH
+   ───────────────────────────────────────────────────────────── */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 26px;
+  cursor: pointer;
+  transition: background var(--duration-mid) var(--ease-out);
+}
+
+.slider::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--duration-mid) var(--ease-spring);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch input:checked + .slider {
+  background: var(--accent);
+}
+.switch input:checked + .slider::after {
+  transform: translateX(20px);
+}
+.switch input:focus-visible + .slider {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   8. COMPONENTS — PILL GROUP
+   ───────────────────────────────────────────────────────────── */
+.pill-group {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+}
+
+.pill {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast),
+    box-shadow var(--duration-fast);
+  white-space: nowrap;
+}
+
+.pill.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.pill:active {
+  opacity: 0.75;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   9. COMPONENTS — SETTINGS MODAL
+   ───────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-mid) var(--ease-out);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 12px 20px max(40px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--ease-spring);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-overlay.active .modal {
+  transform: translateY(0);
+}
+
+.modal__handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-row--column {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.setting-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-row__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.setting-row__desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   10. COMPONENTS — PROGRESS BAR
+   ───────────────────────────────────────────────────────────── */
+.progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 3px;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11. COMPONENTS — QUESTION CARD
+   ───────────────────────────────────────────────────────────── */
+.question-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  min-height: 80px;
+}
+
+.question-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-family: "Courier New", Courier, monospace;
+  font-size: clamp(0.88rem, 2.4vw, 1rem);
+  line-height: 1.6;
+  color: var(--text-primary);
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.question-text::-webkit-scrollbar {
+  width: 4px;
+}
+.question-text::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   12. COMPONENTS — OPTION BUTTONS
+   ───────────────────────────────────────────────────────────── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.opt {
+  width: 100%;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    border-color var(--duration-fast),
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
+}
+
+.opt:not(:disabled):hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.opt:not(:disabled):active {
   transform: scale(0.97);
 }
-
-.quiz-container {
-  animation: fadeIn 0.4s ease;
+.opt:disabled {
+  cursor: default;
+}
+.opt:focus {
+  outline: none;
+  box-shadow: none;
 }
 
-@keyframes fadeIn {
+.opt.correct {
+  background: var(--correct-bg) !important;
+  border-color: var(--correct-border) !important;
+  color: var(--correct-text) !important;
+  font-weight: 700;
+  animation: popIn var(--duration-mid) var(--ease-spring);
+}
+
+.opt.wrong {
+  background: var(--wrong-bg) !important;
+  border-color: var(--wrong-border) !important;
+  color: var(--wrong-text) !important;
+  font-weight: 700;
+  animation: shake 0.4s var(--ease-out);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   13. COMPONENTS — FEEDBACK
+   ───────────────────────────────────────────────────────────── */
+.feedback-container {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.feedback-box {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  font-weight: 500;
+  animation: slideUp var(--duration-mid) var(--ease-spring);
+}
+
+.feedback-box.correct {
+  background: var(--correct-bg);
+  color: var(--correct-text);
+  border-left: 4px solid var(--correct-border);
+}
+
+.feedback-box.wrong {
+  background: var(--wrong-bg);
+  color: var(--wrong-text);
+  border-left: 4px solid var(--wrong-border);
+}
+
+.feedback-box strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.feedback-box small {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.85;
+  font-style: italic;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   14. COMPONENTS — HIGH SCORE
+   ───────────────────────────────────────────────────────────── */
+.highscore-box {
+  background: #fffbeb;
+  border: 1.5px solid #fbbf24;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  color: #92400e;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  animation: popIn var(--duration-mid) var(--ease-spring);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15. COMPONENTS — SWIPE HINT
+   ───────────────────────────────────────────────────────────── */
+.swipe-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  animation: fadeInOut 2.5s var(--ease-out) forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   16. ANIMATIONS & TRANSITIONS
+   ───────────────────────────────────────────────────────────── */
+@keyframes questionEnter {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -147,95 +743,166 @@ button {
   }
 }
 
-button {
-  -webkit-tap-highlight-color: transparent;
+.question-enter {
+  animation: questionEnter var(--duration-mid) var(--ease-out);
 }
 
-.correct {
-  background-color: #d4edda !important;
-  border-color: green !important;
-}
-
-.wrong {
-  background-color: #f8d7da !important;
-  border-color: red !important;
-}
-
-.opt:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Feedback & Explanation */
-#feedback {
-  margin-top: 15px;
-  font-weight: bold;
-}
-#feedback small {
-  display: block;
-  color: #666;
-  font-weight: normal;
-  margin-top: 5px;
-  font-style: italic;
-}
-
-/* High Score Box */
-#highScoreDisplay {
-  display: none;
-  background: #fff9c4;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 15px;
-  color: #f57f17;
-  font-weight: bold;
-  border: 1px solid #fbc02d;
-}
-
-/* Toggle Switch */
-.mode-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 20px;
-}
-.switch input:checked + .slider {
-  background-color: #764ba2;
-}
-
-@media (max-width: 480px) {
-  body {
-    padding: 10px;
+@keyframes optEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
   }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 
-  .quiz-container {
-    padding: 18px;
+/* Applied with stagger delay via JS */
+.opt {
+  animation: optEnter var(--duration-mid) var(--ease-out) both;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.quiz-container,
+.home-container {
+  animation: questionEnter 0.35s var(--ease-out);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   17. DARK MODE
+   Triggered by class on <html> — applied before first paint
+   via inline script in <head>, so no theme flash ever occurs.
+   ───────────────────────────────────────────────────────────── */
+html.dark {
+  --bg: #0f0d17;
+  --surface: #1a1726;
+  --surface-2: #221f30;
+  --border: #2e2a40;
+
+  --text-primary: #f0eeff;
+  --text-secondary: #9490a8;
+  --text-inverse: #ffffff;
+
+  --accent-light: #2a2050;
+
+  --correct-bg: #0d2e1a;
+  --correct-border: #2ecc71;
+  --correct-text: #7ee6a8;
+
+  --wrong-bg: #2e0d0d;
+  --wrong-border: #e74c3c;
+  --wrong-text: #f4a0a0;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .highscore-box {
+  background: #2a1f00;
+  border-color: #ca8a04;
+  color: #fcd34d;
+}
+
+html.dark .progress-bar-fill {
+  background: linear-gradient(90deg, var(--accent), #818cf8);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   18. RESPONSIVE / MOBILE POLISH
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  body {
+    padding: 12px 12px 28px;
   }
 
   .opt {
-    font-size: 0.95rem;
-    padding: 18px;
+    font-size: 0.88rem;
+    padding: 13px 14px;
+  }
+  .question-text {
+    font-size: 0.82rem;
+  }
+  .pill {
+    font-size: 0.76rem;
+    padding: 7px 8px;
+  }
+}
+
+@media (min-height: 800px) {
+  .quiz-container {
+    gap: 16px;
+  }
+  .options {
+    gap: 11px;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

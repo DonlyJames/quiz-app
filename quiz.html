@@ -5,42 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quiz Master - Play</title>
     <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Apply theme BEFORE body renders — prevents flash -->
+    <script>
+      (function () {
+        const s = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+        const theme = s.theme || "auto";
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        if (theme === "dark" || (theme === "auto" && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
   </head>
+
   <body>
-    <div class="quiz-container">
-      <div class="quiz-header">
-        <span id="livesDisplay"></span>
-        <button id="soundToggle" onclick="toggleSound()">🔊 Sound</button>
+    <div class="quiz-container" id="quizContainer">
+      <!-- Top Bar -->
+      <div class="quiz-topbar">
+        <button
+          class="icon-btn"
+          onclick="location.href = 'index.html'"
+          aria-label="Home"
+        >
+          ‹
+        </button>
+        <span id="livesDisplay" class="lives-display"></span>
+        <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+          ⚙️
+        </button>
       </div>
 
-      <div class="progress-container">
-        <div id="progressBar"></div>
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-bar-track">
+          <div id="progressBar" class="progress-bar-fill"></div>
+        </div>
+        <span id="progressText" class="progress-text"></span>
       </div>
 
-      <h3 id="progressText"></h3>
-      <h2 id="question">Loading...</h2>
+      <!-- Question Card -->
+      <div class="question-card" id="questionCard">
+        <p id="question" class="question-text">Loading...</p>
+      </div>
 
-      <div class="options"></div>
+      <!-- Options -->
+      <div class="options" id="optionsContainer"></div>
 
-      <p id="feedback"></p>
-      <div id="highScoreDisplay"></div>
+      <!-- Feedback -->
+      <div
+        id="feedbackContainer"
+        class="feedback-container"
+        aria-live="polite"
+      ></div>
 
-      <button
-        id="restartBtn"
-        class="primary-btn"
-        onclick="location.reload()"
+      <!-- High Score (endless only) -->
+      <div
+        id="highScoreDisplay"
+        class="highscore-box"
         style="display: none"
-      >
-        🔄 Try Again
-      </button>
-      <button
-        id="homeBtn"
-        class="secondary-btn"
-        onclick="location.href = 'index.html'"
-        style="display: none"
-      >
-        🏠 Home
-      </button>
+      ></div>
+
+      <!-- End Screen Actions -->
+      <div id="endActions" class="end-actions" style="display: none">
+        <button class="primary-btn" onclick="location.reload()">
+          🔄 Try Again
+        </button>
+        <button class="secondary-btn" onclick="location.href = 'index.html'">
+          🏠 Home
+        </button>
+      </div>
+
+      <!-- Swipe hint (shown briefly after first answer) -->
+      <div id="swipeHint" class="swipe-hint" style="display: none">
+        Swipe left to continue ›
+      </div>
+    </div>
+
+    <!-- Settings Modal (same structure as index) -->
+    <div
+      class="modal-overlay"
+      id="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Settings"
+    >
+      <div class="modal" id="settingsModal">
+        <div class="modal__handle"></div>
+        <div class="modal__header">
+          <h2>Settings</h2>
+          <button class="icon-btn" id="closeModal" aria-label="Close settings">
+            ✕
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <span class="setting-row__label">Sound Effects</span>
+            <span class="setting-row__desc">Play audio on answers</span>
+          </div>
+          <label class="switch" aria-label="Toggle sound">
+            <input type="checkbox" id="soundToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <span class="setting-row__label">Vibration</span>
+            <span class="setting-row__desc"
+              >Haptic feedback on wrong answers</span
+            >
+          </div>
+          <label class="switch" aria-label="Toggle vibration">
+            <input type="checkbox" id="vibrationToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row setting-row--column">
+          <span class="setting-row__label">Theme</span>
+          <div
+            class="pill-group"
+            id="themeGroup"
+            role="group"
+            aria-label="Theme selection"
+          >
+            <button class="pill" data-value="light">Light</button>
+            <button class="pill" data-value="auto">Auto</button>
+            <button class="pill" data-value="dark">Dark</button>
+          </div>
+        </div>
+
+        <div class="setting-row setting-row--column">
+          <span class="setting-row__label">Advance Mode</span>
+          <div
+            class="pill-group"
+            id="nextModeGroup"
+            role="group"
+            aria-label="Advance mode"
+          >
+            <button class="pill" data-value="auto">Auto (2s)</button>
+            <button class="pill" data-value="manual">Manual (Swipe)</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="js/script.js"></script>

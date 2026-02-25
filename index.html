@@ -3,42 +3,261 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz Master - Home</title>
+    <title>Quiz Master</title>
     <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <div class="category-container">
-      <h1>🚀 Quiz Master</h1>
-      <p>Select a category to begin</p>
 
-      <div class="mode-box">
-        <label class="switch">
+    <!-- Apply theme BEFORE body renders to prevent flash -->
+    <script>
+      (function () {
+        const s = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+        const theme = s.theme || "auto";
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        if (theme === "dark" || (theme === "auto" && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div class="home-container">
+      <!-- Header -->
+      <div class="home-header">
+        <div class="home-header__title">
+          <span class="home-header__icon">⚡</span>
+          <h1>Quiz Master</h1>
+        </div>
+        <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+          ⚙️
+        </button>
+      </div>
+
+      <!-- Subtitle -->
+      <p class="home-subtitle">Pick a category and test your skills</p>
+
+      <!-- Mode Toggle -->
+      <div class="mode-card">
+        <div class="mode-card__info">
+          <span class="mode-card__label">Endless Mode</span>
+          <span class="mode-card__desc">3 lives · High score tracking</span>
+        </div>
+        <label class="switch" aria-label="Toggle endless mode">
           <input type="checkbox" id="endlessToggle" />
           <span class="slider"></span>
         </label>
-        <span>Endless Mode (3 Lives + High Score)</span>
       </div>
 
+      <!-- Category List -->
       <div class="category-list">
-        <button class="menu-btn" onclick="start('questions/js-easy.js')">
-          JavaScript - Easy
+        <button class="category-btn" onclick="start('questions/js-easy.js')">
+          <span class="category-btn__icon">🟡</span>
+          <span class="category-btn__text">
+            <strong>JavaScript</strong>
+            <small>Easy</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
         </button>
-        <button class="menu-btn" onclick="start('questions/js-med.js')">
-          JavaScript - Medium
+
+        <button class="category-btn" onclick="start('questions/js-med.js')">
+          <span class="category-btn__icon">🟠</span>
+          <span class="category-btn__text">
+            <strong>JavaScript</strong>
+            <small>Medium</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
         </button>
-        <button class="menu-btn" onclick="start('questions/python-easy.js')">
-          Python - Easy
+
+        <button
+          class="category-btn"
+          onclick="start('questions/python-easy.js')"
+        >
+          <span class="category-btn__icon">🔵</span>
+          <span class="category-btn__text">
+            <strong>Python</strong>
+            <small>Easy</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
         </button>
       </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div
+      class="modal-overlay"
+      id="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Settings"
+    >
+      <div class="modal" id="settingsModal">
+        <div class="modal__handle"></div>
+        <div class="modal__header">
+          <h2>Settings</h2>
+          <button class="icon-btn" id="closeModal" aria-label="Close settings">
+            ✕
+          </button>
+        </div>
+
+        <!-- Sound Toggle -->
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <span class="setting-row__label">Sound Effects</span>
+            <span class="setting-row__desc">Play audio on answers</span>
+          </div>
+          <label class="switch" aria-label="Toggle sound">
+            <input type="checkbox" id="soundToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Vibration Toggle -->
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <span class="setting-row__label">Vibration</span>
+            <span class="setting-row__desc"
+              >Haptic feedback on wrong answers</span
+            >
+          </div>
+          <label class="switch" aria-label="Toggle vibration">
+            <input type="checkbox" id="vibrationToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Theme Selection -->
+        <div class="setting-row setting-row--column">
+          <span class="setting-row__label">Theme</span>
+          <div
+            class="pill-group"
+            id="themeGroup"
+            role="group"
+            aria-label="Theme selection"
+          >
+            <button class="pill" data-value="light">Light</button>
+            <button class="pill" data-value="auto">Auto</button>
+            <button class="pill" data-value="dark">Dark</button>
+          </div>
+        </div>
+
+        <!-- Next Mode -->
+        <div class="setting-row setting-row--column">
+          <span class="setting-row__label">Advance Mode</span>
+          <div
+            class="pill-group"
+            id="nextModeGroup"
+            role="group"
+            aria-label="Advance mode selection"
+          >
+            <button class="pill" data-value="auto">Auto (2s)</button>
+            <button class="pill" data-value="manual">Manual (Swipe)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
+      // ─── Settings State ───────────────────────────────────────────────────────
+      const DEFAULTS = {
+        sound: true,
+        vibration: true,
+        theme: "auto",
+        nextMode: "auto",
+      };
+
+      function loadSettings() {
+        return Object.assign(
+          {},
+          DEFAULTS,
+          JSON.parse(localStorage.getItem("quizSettings") || "{}"),
+        );
+      }
+
+      function saveSettings(settings) {
+        localStorage.setItem("quizSettings", JSON.stringify(settings));
+      }
+
+      function applyTheme(theme) {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        const isDark = theme === "dark" || (theme === "auto" && prefersDark);
+        document.documentElement.classList.toggle("dark", isDark);
+      }
+
+      // ─── Start Quiz ───────────────────────────────────────────────────────────
       function start(file) {
         const isEndless = document.getElementById("endlessToggle").checked;
         localStorage.setItem("questionFile", file);
         localStorage.setItem("quizMode", isEndless ? "endless" : "classic");
         window.location.href = "quiz.html";
       }
+
+      // ─── Settings Modal ───────────────────────────────────────────────────────
+      const overlay = document.getElementById("modalOverlay");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const closeBtn = document.getElementById("closeModal");
+
+      function openModal() {
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      settingsBtn.addEventListener("click", openModal);
+      closeBtn.addEventListener("click", closeModal);
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeModal();
+      });
+
+      // ─── Pill Group Helper ────────────────────────────────────────────────────
+      function initPillGroup(groupId, currentValue, onChange) {
+        const group = document.getElementById(groupId);
+        group.querySelectorAll(".pill").forEach((pill) => {
+          if (pill.dataset.value === currentValue) pill.classList.add("active");
+          pill.addEventListener("click", () => {
+            group
+              .querySelectorAll(".pill")
+              .forEach((p) => p.classList.remove("active"));
+            pill.classList.add("active");
+            onChange(pill.dataset.value);
+          });
+        });
+      }
+
+      // ─── Init Settings UI ─────────────────────────────────────────────────────
+      const settings = loadSettings();
+
+      document.getElementById("soundToggle").checked = settings.sound;
+      document.getElementById("vibrationToggle").checked = settings.vibration;
+
+      document.getElementById("soundToggle").addEventListener("change", (e) => {
+        settings.sound = e.target.checked;
+        saveSettings(settings);
+      });
+
+      document
+        .getElementById("vibrationToggle")
+        .addEventListener("change", (e) => {
+          settings.vibration = e.target.checked;
+          saveSettings(settings);
+        });
+
+      initPillGroup("themeGroup", settings.theme, (val) => {
+        settings.theme = val;
+        saveSettings(settings);
+        applyTheme(val);
+      });
+
+      initPillGroup("nextModeGroup", settings.nextMode, (val) => {
+        settings.nextMode = val;
+        saveSettings(settings);
+      });
     </script>
   </body>
 </html>
