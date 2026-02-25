@@ -22,6 +22,10 @@ const sounds = {
   highScore: new Audio("sounds/high-score.mp3"), // Reusing your timeout as highscore or replace
 };
 
+Object.values(sounds).forEach((sound) => {
+  sound.preload = "auto";
+});
+
 if (!file) location.href = "index.html";
 
 // 1. Initialize
@@ -44,21 +48,33 @@ function loadQuestion() {
   const q = questions[index];
   progressText.textContent = `Question ${index + 1} of ${questions.length}`;
   questionEl.textContent = q.question;
+  questionEl.scrollTop = 0;
 
-  const progressPercent = (index / questions.length) * 100;
+  const progressPercent = ((index + 1) / questions.length) * 100;
   progressBar.style.width = progressPercent + "%";
 
-  const buttons = document.querySelectorAll(".opt");
-  buttons.forEach((btn, i) => {
-    btn.textContent = q.options[i];
-    btn.disabled = false;
-    btn.style.display = "block";
-    btn.classList.remove("correct", "wrong");
+  // const buttons = document.querySelectorAll(".opt");
+  // buttons.forEach((btn, i) => {
+  //   btn.textContent = q.options[i];
+  //   btn.disabled = false;
+  //   btn.style.display = "block";
+  //   btn.classList.remove("correct", "wrong");
+  // });
+  const optionsContainer = document.querySelector(".options");
+  optionsContainer.innerHTML = "";
+
+  q.options.forEach((optionText, i) => {
+    const button = document.createElement("button");
+    button.classList.add("opt");
+    button.textContent = optionText;
+    button.onclick = () => checkAnswer(i);
+    optionsContainer.appendChild(button);
   });
   feedbackEl.innerHTML = "";
 }
 
 function checkAnswer(i) {
+  if (document.querySelector(".opt:disabled")) return;
   document.activeElement.blur(); // remove focus highlight
   const q = questions[index];
   const buttons = document.querySelectorAll(".opt");
@@ -76,7 +92,7 @@ function checkAnswer(i) {
     if (soundEnabled) sounds.wrong.play();
 
     if (navigator.vibrate) {
-      navigator.vibrate(200);
+      navigator.vibrate([100, 50, 100]);
     }
 
     if (mode === "endless") {
@@ -99,7 +115,7 @@ function checkAnswer(i) {
       endQuiz();
     }, 2000);
   } else {
-    setTimeout(next, 3500);
+    setTimeout(next, 2000);
   }
 }
 
