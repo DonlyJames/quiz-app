@@ -78,7 +78,17 @@
         </button>
       </div>
 
-      <!-- Swipe hint (shown briefly after first answer) -->
+      <!-- Manual mode next button — visible on desktop, hidden on touch -->
+      <button
+        id="nextBtn"
+        class="next-btn"
+        style="display: none"
+        aria-label="Next question"
+      >
+        Next <span class="next-btn__arrow">→</span>
+      </button>
+
+      <!-- Swipe hint (shown briefly on mobile after first answer in manual mode) -->
       <div id="swipeHint" class="swipe-hint" style="display: none">
         Swipe left to continue ›
       </div>

@@ -81,6 +81,92 @@
           <span class="category-btn__arrow">›</span>
         </button>
       </div>
+
+      <!-- Divider -->
+      <div class="section-divider">
+        <span>or play General Knowledge</span>
+      </div>
+
+      <!-- API Categories -->
+      <div class="category-list" id="apiCategoryList">
+        <button
+          class="category-btn category-btn--api"
+          onclick="startFromAPI(9, 'General Knowledge')"
+        >
+          <span class="category-btn__icon">🌍</span>
+          <span class="category-btn__text">
+            <strong>General Knowledge</strong>
+            <small>Mixed topics · via Open Trivia DB</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button
+          class="category-btn category-btn--api"
+          onclick="startFromAPI(17, 'Science & Nature')"
+        >
+          <span class="category-btn__icon">🔬</span>
+          <span class="category-btn__text">
+            <strong>Science & Nature</strong>
+            <small>Biology, physics, chemistry</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button
+          class="category-btn category-btn--api"
+          onclick="startFromAPI(23, 'History')"
+        >
+          <span class="category-btn__icon">📜</span>
+          <span class="category-btn__text">
+            <strong>History</strong>
+            <small>World history events</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button
+          class="category-btn category-btn--api"
+          onclick="startFromAPI(21, 'Sports')"
+        >
+          <span class="category-btn__icon">⚽</span>
+          <span class="category-btn__text">
+            <strong>Sports</strong>
+            <small>Football, tennis, Olympics</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button
+          class="category-btn category-btn--api"
+          onclick="startFromAPI(11, 'Film & TV')"
+        >
+          <span class="category-btn__icon">🎬</span>
+          <span class="category-btn__text">
+            <strong>Film & TV</strong>
+            <small>Movies and television</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+      </div>
+
+      <!-- API loading state -->
+      <div id="apiLoader" class="api-loader" style="display: none">
+        <div class="api-loader__spinner"></div>
+        <span>Fetching questions…</span>
+      </div>
+
+      <!-- API error state -->
+      <div id="apiError" class="api-error" style="display: none">
+        ⚠️ Could not load questions. Check your connection and try again.
+        <button
+          class="secondary-btn"
+          onclick="retryAPI()"
+          style="margin-top: 10px"
+        >
+          Retry
+        </button>
+      </div>
     </div>
 
     <!-- Settings Modal -->
@@ -186,12 +272,97 @@
         document.documentElement.classList.toggle("dark", isDark);
       }
 
-      // ─── Start Quiz ───────────────────────────────────────────────────────────
+      // ─── Start Quiz (local file) ──────────────────────────────────────────────
       function start(file) {
         const isEndless = document.getElementById("endlessToggle").checked;
         localStorage.setItem("questionFile", file);
         localStorage.setItem("quizMode", isEndless ? "endless" : "classic");
+        localStorage.removeItem("apiQuestions"); // clear any previous API data
         window.location.href = "quiz.html";
+      }
+
+      // ─── Start Quiz (API) ─────────────────────────────────────────────────────
+      let lastAPICategory = null;
+      let lastAPICategoryName = null;
+
+      function startFromAPI(categoryId, categoryName) {
+        lastAPICategory = categoryId;
+        lastAPICategoryName = categoryName;
+
+        const loader = document.getElementById("apiLoader");
+        const errorEl = document.getElementById("apiError");
+        const listEl = document.getElementById("apiCategoryList");
+
+        errorEl.style.display = "none";
+        loader.style.display = "flex";
+        listEl.style.opacity = "0.4";
+        listEl.style.pointerEvents = "none";
+
+        const amount = 10;
+        const url = `https://opentdb.com/api.php?amount=${amount}&category=${categoryId}&type=multiple`;
+
+        fetch(url)
+          .then((r) => {
+            if (!r.ok) throw new Error("Network response not ok");
+            return r.json();
+          })
+          .then((data) => {
+            if (data.response_code !== 0 || !data.results.length) {
+              throw new Error("No questions returned");
+            }
+
+            // Normalise API format → our internal format
+            // API gives: correct_answer (string) + incorrect_answers (array)
+            // We need: { question, options[], answer (index), explanation }
+            const questions = data.results.map((q) => {
+              // Decode HTML entities the API encodes (e.g. &amp; &#039;)
+              const decode = (str) => {
+                const txt = document.createElement("textarea");
+                txt.innerHTML = str;
+                return txt.value;
+              };
+
+              const correct = decode(q.correct_answer);
+              const incorrects = q.incorrect_answers.map(decode);
+              const options = shuffle([correct, ...incorrects]);
+              const answerIdx = options.indexOf(correct);
+
+              return {
+                question: decode(q.question),
+                options: options,
+                answer: answerIdx,
+                explanation: `Correct answer: ${correct}`,
+              };
+            });
+
+            // Store normalised questions for quiz.html to pick up
+            localStorage.setItem("apiQuestions", JSON.stringify(questions));
+            localStorage.setItem("apiCategory", categoryName);
+            localStorage.setItem("questionFile", `api:${categoryId}`);
+            localStorage.setItem("quizMode", "classic");
+
+            window.location.href = "quiz.html";
+          })
+          .catch(() => {
+            loader.style.display = "none";
+            listEl.style.opacity = "1";
+            listEl.style.pointerEvents = "all";
+            errorEl.style.display = "block";
+          });
+      }
+
+      function retryAPI() {
+        if (lastAPICategory) startFromAPI(lastAPICategory, lastAPICategoryName);
+      }
+
+      // Simple Fisher-Yates needed here before script.js loads
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
       }
 
       // ─── Settings Modal ───────────────────────────────────────────────────────

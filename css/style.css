@@ -254,6 +254,80 @@ h2 {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   4b. COMPONENTS — SECTION DIVIDER & API STATES
+   ───────────────────────────────────────────────────────────── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-divider span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+/* Subtle badge on API category buttons */
+.category-btn--api .category-btn__text small::after {
+  content: " · Live";
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Loading spinner */
+.api-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.api-loader__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.api-error {
+  background: var(--wrong-bg);
+  color: var(--wrong-text);
+  border: 1.5px solid var(--wrong-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: center;
+  animation: slideUp var(--duration-mid) var(--ease-spring);
+}
+
+/* ─────────────────────────────────────────────────────────────
    5. LAYOUT — QUIZ PAGE
    ───────────────────────────────────────────────────────────── */
 .quiz-container {
@@ -727,6 +801,48 @@ h2 {
   font-weight: 500;
   letter-spacing: 0.03em;
   animation: fadeInOut 2.5s var(--ease-out) forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15b. COMPONENTS — NEXT BUTTON (manual mode)
+   ───────────────────────────────────────────────────────────── */
+.next-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  animation: slideUp var(--duration-mid) var(--ease-spring);
+  transition:
+    background var(--duration-fast),
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast);
+}
+
+.next-btn:hover {
+  background: var(--accent-light);
+  box-shadow: var(--shadow-md);
+}
+
+.next-btn:active {
+  transform: scale(0.97);
+}
+
+.next-btn__arrow {
+  display: inline-block;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.next-btn:hover .next-btn__arrow {
+  transform: translateX(4px);
 }
 
 /* ─────────────────────────────────────────────────────────────

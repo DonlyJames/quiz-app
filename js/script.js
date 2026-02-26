@@ -153,30 +153,54 @@ initSwipe();
    6. QUIZ LOGIC
    ───────────────────────────────────────────────────────────── */
 function loadQuestions(file) {
+  // ── API path: questions were fetched on index.html and stored ──
+  if (file && file.startsWith("api:")) {
+    const raw = localStorage.getItem("apiQuestions");
+
+    if (!raw) {
+      showError("No questions found. Please go back and try again.");
+      return;
+    }
+
+    try {
+      const questions = JSON.parse(raw);
+      // Clear stored questions so stale data isn't reused on reload
+      localStorage.removeItem("apiQuestions");
+      bootQuiz(questions);
+    } catch {
+      showError("Failed to parse questions.");
+    }
+    return;
+  }
+
+  // ── Local file path ────────────────────────────────────────────
   const script = document.createElement("script");
   script.src = file;
 
   script.onload = () => {
-    // QUESTIONS is a global set by the loaded question file
     if (typeof QUESTIONS === "undefined" || !QUESTIONS.length) {
       showError("Failed to load questions.");
       return;
     }
-
-    State.questions =
-      quizMode === "endless"
-        ? shuffle([...QUESTIONS])
-        : shuffle([...QUESTIONS]).slice(0, 10);
-
-    if (quizMode === "endless") {
-      renderLives();
-    }
-
-    loadQuestion();
+    bootQuiz(QUESTIONS);
   };
 
   script.onerror = () => showError("Could not load question file.");
   document.body.appendChild(script);
+}
+
+// Shared boot logic — called by both local and API paths
+function bootQuiz(source) {
+  State.questions =
+    quizMode === "endless"
+      ? shuffle([...source])
+      : shuffle([...source]).slice(0, 10);
+
+  if (quizMode === "endless") {
+    renderLives();
+  }
+
+  loadQuestion();
 }
 
 function loadQuestion() {
@@ -185,6 +209,10 @@ function loadQuestion() {
   // Reset per-question state
   State.answered = false;
   State.canAdvance = false;
+
+  // Hide manual-mode next button
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.style.display = "none";
 
   // Progress
   const total = State.questions.length;
@@ -262,11 +290,15 @@ function checkAnswer(isCorrect, clickedBtn) {
   if (nextMode === "auto") {
     setTimeout(advance, 2200);
   } else {
-    // Manual mode — show swipe hint once
-    if (!State.swipeHintShown) {
+    // Manual mode — show Next button (desktop) and swipe hint (mobile, once)
+    const nextBtn = document.getElementById("nextBtn");
+    const isTouchDevice = navigator.maxTouchPoints > 0;
+
+    if (nextBtn) nextBtn.style.display = "block";
+
+    if (!State.swipeHintShown && isTouchDevice) {
       State.swipeHintShown = true;
       El.swipeHint.style.display = "block";
-      // Hide after animation completes
       setTimeout(() => (El.swipeHint.style.display = "none"), 2600);
     }
   }
@@ -359,15 +391,21 @@ function endQuiz() {
 
   El.endActions.style.display = "flex";
   El.swipeHint.style.display = "none";
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.style.display = "none";
 }
 
 /* ─────────────────────────────────────────────────────────────
-   9. SWIPE GESTURE
-   Swipe left anywhere on the quiz container to advance.
-   Only fires after an answer is confirmed (canAdvance).
+   9. NAVIGATION — SWIPE / KEYBOARD / BUTTON
+   All three input methods call the same advance() function.
+   - Touch:    swipe left (mobile)
+   - Keyboard: ArrowRight, Space, Enter (desktop)
+   - Button:   #nextBtn appears after answering in manual mode
+   Only active after canAdvance is true (answer confirmed).
    Ignores vertical scrolls and right/up/down swipes.
    ───────────────────────────────────────────────────────────── */
-function initSwipe() {
+function initNavigation() {
+  // ── Touch swipe ──────────────────────────────────────────
   let startX = 0;
   let startY = 0;
 
@@ -389,7 +427,6 @@ function initSwipe() {
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
 
-      // Must be mostly horizontal and at least 50px
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isLongEnough = Math.abs(dx) > 50;
       const isLeftSwipe = dx < 0;
@@ -400,6 +437,22 @@ function initSwipe() {
     },
     { passive: true },
   );
+
+  // ── Keyboard (desktop) ───────────────────────────────────
+  // Works in both auto and manual mode — always a nice shortcut
+  document.addEventListener("keydown", (e) => {
+    if (!State.canAdvance) return;
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+      e.preventDefault(); // prevent Space from scrolling page
+      advance();
+    }
+  });
+
+  // ── Next button ───────────────────────────────────────────
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", advance);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────
