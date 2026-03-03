@@ -627,7 +627,7 @@ const QUESTIONS = [
     answer: 2,
     explanation: "return exits the function and optionally provides a value.",
   },
-
+  // async
   {
     question:
       'What will be printed? \nimport asyncio\n\nasync def main():\n    print("Hello Async")\n\nasyncio.run(main())',
@@ -814,5 +814,210 @@ const QUESTIONS = [
     ],
     answer: 2,
     explanation: "time.sleep blocks the entire thread.",
+  },
+  // Redis
+  {
+    question: "What does Redis stand for?",
+    options: [
+      "Remote Dictionary Server",
+      "Relational Data Store",
+      "Real-time Data Service",
+      "Remote Data System",
+    ],
+    answer: 0,
+    difficulty: "easy",
+    explanation: "Redis stands for Remote Dictionary Server.",
+  },
+  {
+    question: "What type of database is Redis?",
+    options: ["Relational", "In-memory", "Graph", "Document"],
+    answer: 1,
+    difficulty: "easy",
+    explanation:
+      "Redis is an in-memory data structure store, meaning it stores data in RAM for fast access.",
+  },
+  {
+    question: "Which command sets a key-value pair in Redis?",
+    options: ["GET", "PUT", "SET", "ADD"],
+    answer: 2,
+    difficulty: "easy",
+    explanation:
+      "SET key value is the basic command to store a value in Redis.",
+  },
+  {
+    question: "Which command retrieves a value by key in Redis?",
+    options: ["FETCH", "GET", "READ", "FIND"],
+    answer: 1,
+    difficulty: "easy",
+    explanation: "GET key retrieves the value stored at the given key.",
+  },
+  {
+    question: "Which command deletes a key in Redis?",
+    options: ["REMOVE", "DROP", "DEL", "CLEAR"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "DEL key deletes the specified key and its value from Redis.",
+  },
+  {
+    question: "What command checks if a key exists in Redis?",
+    options: ["FIND", "EXISTS", "CHECK", "HAS"],
+    answer: 1,
+    difficulty: "easy",
+    explanation: "EXISTS key returns 1 if the key exists, 0 if it does not.",
+  },
+  {
+    question: "What is the default port Redis runs on?",
+    options: ["3306", "5432", "6379", "27017"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "Redis runs on port 6379 by default.",
+  },
+  {
+    question: "Which command sets a key with an expiry time in seconds?",
+    options: [
+      "SET key value TTL 10",
+      "EXPIRE key value 10",
+      "SETEX key 10 value",
+      "SET key value 10",
+    ],
+    answer: 2,
+    difficulty: "easy",
+    explanation:
+      "SETEX key seconds value sets a key with an expiration time in seconds.",
+  },
+  {
+    question: "What does TTL stand for in Redis?",
+    options: [
+      "Time To Load",
+      "Time To Live",
+      "Transfer To Layer",
+      "Temporary Token Limit",
+    ],
+    answer: 1,
+    difficulty: "easy",
+    explanation:
+      "TTL stands for Time To Live — how long a key will exist before it expires.",
+  },
+  {
+    question: "Which command returns the TTL of a key in Redis?",
+    options: ["EXPIRY", "TTL", "TIMEOUT", "EXPIRE"],
+    answer: 1,
+    difficulty: "easy",
+    explanation:
+      "TTL key returns the remaining time to live of a key in seconds.",
+  },
+  {
+    question: "What value does TTL return if a key has no expiry set?",
+    options: ["0", "null", "-1", "-2"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "TTL returns -1 if the key exists but has no expiry set.",
+  },
+  {
+    question: "What value does TTL return if a key does not exist?",
+    options: ["0", "null", "-1", "-2"],
+    answer: 3,
+    difficulty: "easy",
+    explanation: "TTL returns -2 if the key does not exist in Redis.",
+  },
+  {
+    question: "Which Redis data type stores a list of strings in order?",
+    options: ["Set", "Hash", "List", "Stream"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "Redis Lists store an ordered collection of strings.",
+  },
+  {
+    question: "Which Redis data type stores unique unordered values?",
+    options: ["List", "Set", "Hash", "ZSet"],
+    answer: 1,
+    difficulty: "easy",
+    explanation: "Redis Sets store unique values with no guaranteed order.",
+  },
+  {
+    question:
+      "Which Redis data type stores field-value pairs like a dictionary?",
+    options: ["List", "Set", "Stream", "Hash"],
+    answer: 3,
+    difficulty: "easy",
+    explanation:
+      "Redis Hashes store multiple field-value pairs under a single key, similar to a dictionary or object.",
+  },
+  {
+    question: "Which command adds an element to the left of a Redis List?",
+    options: ["LADD", "LPUSH", "LSET", "LINSERT"],
+    answer: 1,
+    difficulty: "easy",
+    explanation: "LPUSH key value pushes a value to the left (head) of a list.",
+  },
+  {
+    question: "Which command adds an element to the right of a Redis List?",
+    options: ["RADD", "RAPPEND", "RPUSH", "RSET"],
+    answer: 2,
+    difficulty: "easy",
+    explanation:
+      "RPUSH key value pushes a value to the right (tail) of a list.",
+  },
+  {
+    question: "Which command retrieves all elements of a Redis List?",
+    options: ["LGET 0 -1", "LRANGE key 0 -1", "LALL key", "LFETCH key"],
+    answer: 1,
+    difficulty: "easy",
+    explanation:
+      "LRANGE key 0 -1 returns all elements in a list from index 0 to the last element.",
+  },
+  {
+    question: "Which command adds a member to a Redis Set?",
+    options: ["SADD", "SPUT", "SINSERT", "SPUSH"],
+    answer: 0,
+    difficulty: "easy",
+    explanation: "SADD key member adds one or more members to a Set.",
+  },
+  {
+    question: "Which command returns all members of a Redis Set?",
+    options: ["SGET", "SALL", "SMEMBERS", "SLIST"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "SMEMBERS key returns all members stored in a Set.",
+  },
+  {
+    question: "Is Redis single-threaded for command execution?",
+    options: ["True", "False"],
+    answer: 0,
+    difficulty: "easy",
+    explanation:
+      "Redis processes commands on a single thread, which is why command atomicity is guaranteed.",
+  },
+  {
+    question:
+      "Which command removes and returns the first element of a Redis List?",
+    options: ["LREMOVE", "LPOP", "LSHIFT", "LDELETE"],
+    answer: 1,
+    difficulty: "easy",
+    explanation:
+      "LPOP key removes and returns the leftmost (first) element of a list.",
+  },
+  {
+    question: "Which command returns the number of elements in a Redis List?",
+    options: ["LSIZE", "LCOUNT", "LLEN", "LNUM"],
+    answer: 2,
+    difficulty: "easy",
+    explanation: "LLEN key returns the length (number of elements) of a list.",
+  },
+  {
+    question: "Which command removes all keys in the current Redis database?",
+    options: ["CLEARALL", "DROPDB", "FLUSHDB", "RESETDB"],
+    answer: 2,
+    difficulty: "easy",
+    explanation:
+      "FLUSHDB removes all keys from the currently selected database.",
+  },
+  {
+    question: "Which command removes all keys across ALL Redis databases?",
+    options: ["FLUSHDB", "CLEARALL", "FLUSHALL", "DELETEALL"],
+    answer: 2,
+    difficulty: "easy",
+    explanation:
+      "FLUSHALL removes all keys from all databases in the Redis instance.",
   },
 ];
