@@ -147,7 +147,8 @@ document.addEventListener("mousedown", Audio.preload, { once: true });
 // Boot
 loadQuestions(quizFile);
 initSettingsModal();
-initSwipe();
+initNavigation();
+// initSwipe();
 
 /* ─────────────────────────────────────────────────────────────
    6. QUIZ LOGIC
@@ -219,6 +220,13 @@ function loadQuestion() {
   const current = State.index + 1;
   El.progressText.textContent = `${current} / ${total}`;
   El.progressBar.style.width = `${(current / total) * 100}%`;
+
+  // Emoji image (kids questions only)
+  const imgEl = document.getElementById("questionImage");
+  if (imgEl) {
+    imgEl.textContent = q.image || "";
+    imgEl.style.display = q.image ? "block" : "none";
+  }
 
   // Question text — trigger entrance animation
   El.question.textContent = q.question;

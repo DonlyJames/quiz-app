@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quiz Master - Play</title>
     <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%236c47ff'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>⚡</text></svg>"
+    />
 
     <!-- Apply theme BEFORE body renders — prevents flash -->
     <script>
@@ -48,6 +52,11 @@
 
       <!-- Question Card -->
       <div class="question-card" id="questionCard">
+        <div
+          id="questionImage"
+          class="question-image"
+          style="display: none"
+        ></div>
         <p id="question" class="question-text">Loading...</p>
       </div>
 
