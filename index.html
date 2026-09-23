@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quiz Master</title>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%236c47ff'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>⚡</text></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%236c47ff'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>⚡</text></svg>"
+    />
 
     <!-- Apply theme BEFORE body renders to prevent flash -->
     <script>
@@ -78,6 +81,24 @@
           <span class="category-btn__text">
             <strong>Python</strong>
             <small>Easy</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button class="category-btn" onclick="start('questions/nest-easy.js')">
+          <span class="category-btn__icon">🟤</span>
+          <span class="category-btn__text">
+            <strong>Nestjs</strong>
+            <small>Easy</small>
+          </span>
+          <span class="category-btn__arrow">›</span>
+        </button>
+
+        <button class="category-btn" onclick="start('questions/nest-hard.js')">
+          <span class="category-btn__icon">⚫️</span>
+          <span class="category-btn__text">
+            <strong>Nestjs</strong>
+            <small>Hard</small>
           </span>
           <span class="category-btn__arrow">›</span>
         </button>
